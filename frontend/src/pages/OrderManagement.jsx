@@ -65,13 +65,14 @@ const OrderManagement = () => {
   };
 
   const getStatusOptions = (currentStatus) => {
-    const statuses = ['pending', 'shipped', 'delivered', 'cancelled'];
+    const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     return statuses.filter(status => status !== currentStatus);
   };
 
   const getOrderStats = () => {
     return {
       pending: orders.filter(o => o.status === 'pending').length,
+      processing: orders.filter(o => o.status === 'processing').length,
       shipped: orders.filter(o => o.status === 'shipped').length,
       delivered: orders.filter(o => o.status === 'delivered').length,
       totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0)
@@ -117,6 +118,7 @@ const OrderManagement = () => {
             >
               <option value="all">All Orders</option>
               <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
@@ -147,6 +149,16 @@ const OrderManagement = () => {
             <div>
               <span className="stat-number">{stats.pending}</span>
               <span className="stat-label">Pending Orders</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <FiRefreshCw className="stat-icon" />
+            <div>
+              <span className="stat-number">{stats.processing}</span>
+              <span className="stat-label">Processing Orders</span>
             </div>
           </div>
         </div>
@@ -371,8 +383,8 @@ const OrderManagement = () => {
               </button>
               <button
                 onClick={() => {
-                  const newStatus = prompt('Enter new status (pending, shipped, delivered, cancelled):');
-                  if (newStatus && ['pending', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
+                  const newStatus = prompt('Enter new status (pending, processing, shipped, delivered, cancelled):');
+                  if (newStatus && ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(newStatus)) {
                     handleStatusUpdate(selectedOrder.id || selectedOrder._id, newStatus);
                     setShowModal(false);
                   }

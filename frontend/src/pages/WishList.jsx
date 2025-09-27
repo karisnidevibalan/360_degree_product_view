@@ -15,7 +15,18 @@ const Wishlist = () => {
   // Helper function to get correct image URL
   const getImageUrl = (product) => {
     if (!product.image) {
-      return 'https://via.placeholder.com/300x200?text=Product+Image';
+      // Create a simple fallback image using canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, 0, 300, 200);
+      ctx.fillStyle = '#666';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Product Image', 150, 100);
+      return canvas.toDataURL();
     }
     
     // If image is already a full URL, use it as is

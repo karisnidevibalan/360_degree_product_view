@@ -36,6 +36,11 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cash_on_delivery', 'online'],
+    default: 'cash_on_delivery'
   }
 }, {
   timestamps: true
