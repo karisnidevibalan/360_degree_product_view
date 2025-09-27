@@ -19,6 +19,8 @@ import UserManagement from './pages/UserManagement';
 import Cart from './components/Cart';
 import Wishlist from './pages/WishList';
 import ProductListing from './pages/ProductListing';
+import Chatbot from './components/Chatbot';
+import SimpleChatbot from './components/SimpleChatbot';
 
 // Role selection component
 const RoleSelector = ({ onRoleSelect }) => {
@@ -258,6 +260,29 @@ function AppContent({ selectedRole }) {
       </Routes>
       
       {userRole !== 'admin' && <Footer />}
+      
+      {/* Chatbot - Available for all users */}
+      {user && <SimpleChatbot />}
+      
+      {/* Test Chatbot - Always visible for debugging */}
+      <SimpleChatbot />
+      
+      {/* Debug: Show if user is logged in */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          zIndex: 9999
+        }}>
+          Debug: User = {user ? 'Logged In' : 'Not Logged In'}
+        </div>
+      )}
       
       {/* Notification Toast Component */}
       <NotificationToast />

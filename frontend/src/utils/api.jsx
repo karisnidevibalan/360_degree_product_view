@@ -192,6 +192,12 @@ const makeRequest = async (endpoint, options = {}) => {
     ...options,
   };
 
+  // Handle body data properly
+  if (options.body) {
+    config.data = options.body;
+    delete config.body;
+  }
+
   try {
     const response = await API.request({
       url: endpoint,

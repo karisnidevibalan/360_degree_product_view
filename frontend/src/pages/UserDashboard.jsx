@@ -5,6 +5,7 @@ import { useAuth } from '../context/authContext';
 import { useCart } from '../context/cartContext';
 import {api} from "../utils/api";
 import {formatPrice, formatDate, getStatusColor } from '../utils/helpers';
+import Chatbot from '../components/Chatbot';
 
 const UserDashboard = () => {
   const { user, updateProfile } = useAuth();
@@ -292,6 +293,9 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 };

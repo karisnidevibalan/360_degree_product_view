@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCreditCard, FiTruck, FiLock, FiCheck } from 'react-icons/fi';
+import { FiTruck, FiLock, FiCheck, FiDollarSign } from 'react-icons/fi';
 import { useCart } from '../context/cartContext';
 import { useAuth } from '../context/authContext';
 import { api} from '../utils/api';
@@ -12,6 +12,12 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+
+  // Debug: Log cart items when component mounts
+  useEffect(() => {
+    console.log('Checkout component - Cart items:', cartItems);
+    console.log('Checkout component - Cart items length:', cartItems.length);
+  }, [cartItems]);
   const [formData, setFormData] = useState({
     // Shipping Information
     firstName: user?.name?.split(' ')[0] || '',
@@ -24,15 +30,8 @@ const Checkout = () => {
     zipCode: '',
     country: 'India',
     
-    // Payment Information
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: user?.name || '',
-    
     // Options
-    shippingMethod: 'standard',
-    sameAsBilling: true
+    shippingMethod: 'standard'
   });
 
   const handleInputChange = (e) => {
@@ -54,36 +53,61 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Simulate order processing
+      // Debug: Log cart items structure
+      console.log('Cart items:', cartItems);
+      console.log('Cart items length:', cartItems.length);
+      
+      // Check if cart is empty
+      if (!cartItems || cartItems.length === 0) {
+        alert('Your cart is empty. Please add items to cart before placing an order.');
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order data for cash on delivery
+      const products = cartItems.map(item => {
+        // Handle different cart item structures
+        const productId = item.productId || item.id || item._id;
+        console.log('Processing cart item:', item, 'Product ID:', productId);
+        
+        if (!productId) {
+          throw new Error(`Invalid product ID for item: ${item.name || 'Unknown'}`);
+        }
+        
+        return {
+          product: productId,
+          quantity: item.quantity || 1
+        };
+      });
+
+      // Validate products array
+      if (!products || products.length === 0) {
+        throw new Error('No valid products found in cart');
+      }
+
       const orderData = {
-        userId: user.id,
-        userName: user.name,
-        userEmail: user.email,
-        total: total,
-        items: cartItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity
-        })),
+        products: products,
         shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          address: formData.address,
+          address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
           city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
+          postalCode: formData.zipCode,
           country: formData.country
-        },
-        shippingMethod: formData.shippingMethod
+        }
       };
 
-      await api.createOrder(orderData);
+      console.log('Submitting order with data:', orderData);
+      console.log('Products array:', orderData.products);
+      console.log('Products array length:', orderData.products.length);
+      console.log('First product:', orderData.products[0]);
+      
+      const response = await api.createOrder(orderData);
+      console.log('Order response:', response);
       clearCart();
       setOrderPlaced(true);
     } catch (error) {
       console.error('Order failed:', error);
-      alert('Order failed. Please try again.');
+      console.error('Error details:', error.response?.data || error.message);
+      alert(`Order failed: ${error.response?.data?.message || error.message || 'Please try again.'}`);
     } finally {
       setLoading(false);
     }
@@ -105,7 +129,8 @@ const Checkout = () => {
                 Order Placed Successfully!
               </h1>
               <p style={{ color: 'var(--gray-600)', marginBottom: '2rem' }}>
-                Thank you for your purchase. You will receive an order confirmation email shortly.
+                Thank you for your purchase. You will receive an order confirmation email shortly. 
+                Payment will be collected upon delivery.
               </p>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                 <button
@@ -276,62 +301,48 @@ const Checkout = () => {
             <div className="card">
               <div className="card-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FiCreditCard />
-                  <h3>Payment Information</h3>
+                  <FiDollarSign />
+                  <h3>Payment Method</h3>
                   <FiLock size={16} color="var(--success)" />
                 </div>
               </div>
               <div className="card-body">
-                <div className="form-group">
-                  <label className="form-label">Cardholder Name *</label>
-                  <input
-                    type="text"
-                    name="cardholderName"
-                    className="form-input"
-                    value={formData.cardholderName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Card Number *</label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    className="form-input"
-                    placeholder="1234 5678 9012 3456"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-2">
-                  <div className="form-group">
-                    <label className="form-label">Expiry Date *</label>
-                    <input
-                      type="text"
-                      name="expiryDate"
-                      className="form-input"
-                      placeholder="MM/YY"
-                      value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      required
-                    />
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '1rem', 
+                  padding: '1rem', 
+                  backgroundColor: 'var(--success-light)', 
+                  border: '2px solid var(--success)', 
+                  borderRadius: 'var(--border-radius)',
+                  marginBottom: '1rem'
+                }}>
+                  <FiDollarSign size={24} color="var(--success)" />
+                  <div>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--success)' }}>
+                      Cash on Delivery
+                    </h4>
+                    <p style={{ margin: 0, color: 'var(--gray-600)' }}>
+                      Pay when your order is delivered to your doorstep
+                    </p>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">CVV *</label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      className="form-input"
-                      placeholder="123"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                </div>
+                
+                <div style={{ 
+                  backgroundColor: 'var(--info-light)', 
+                  padding: '1rem', 
+                  borderRadius: 'var(--border-radius)',
+                  border: '1px solid var(--info)'
+                }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--info)' }}>
+                    How Cash on Delivery Works:
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', color: 'var(--gray-600)' }}>
+                    <li>Place your order without any upfront payment</li>
+                    <li>We'll process and ship your order</li>
+                    <li>Pay the delivery person when you receive your order</li>
+                    <li>Only cash payments are accepted upon delivery</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -368,7 +379,18 @@ const Checkout = () => {
                           borderRadius: 'var(--border-radius)'
                         }}
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/50x50?text=Product';
+                          // Create a simple fallback image using canvas
+                          const canvas = document.createElement('canvas');
+                          canvas.width = 50;
+                          canvas.height = 50;
+                          const ctx = canvas.getContext('2d');
+                          ctx.fillStyle = '#f0f0f0';
+                          ctx.fillRect(0, 0, 50, 50);
+                          ctx.fillStyle = '#666';
+                          ctx.font = '10px Arial';
+                          ctx.textAlign = 'center';
+                          ctx.fillText('Product', 25, 30);
+                          e.target.src = canvas.toDataURL();
                         }}
                       />
                       <div style={{ flex: 1 }}>
@@ -424,13 +446,13 @@ const Checkout = () => {
                   className="btn btn-primary btn-full btn-lg"
                   disabled={loading}
                 >
-                  <FiLock />
-                  {loading ? 'Processing...' : `Place Order - ${formatPrice(total)}`}
+                  <FiDollarSign />
+                  {loading ? 'Processing...' : `Place Order (COD) - ${formatPrice(total)}`}
                 </button>
                 
                 <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)', textAlign: 'center', marginTop: '1rem' }}>
-                  <FiLock size={12} style={{ marginRight: '0.25rem' }} />
-                  Your payment information is secure and encrypted
+                  <FiDollarSign size={12} style={{ marginRight: '0.25rem' }} />
+                  Pay when your order is delivered
                 </div>
               </div>
             </div>

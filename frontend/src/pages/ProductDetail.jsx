@@ -108,7 +108,18 @@ const ProductDetail = () => {
                 objectFit: 'cover'
               }}
               onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/400x400?text=Product+Image';
+                // Create a simple fallback image using canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = '#666';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Product Image', 200, 200);
+                e.target.src = canvas.toDataURL();
               }}
             />
           </div>

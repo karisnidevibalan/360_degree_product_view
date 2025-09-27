@@ -266,7 +266,18 @@ const ProductManagement = () => {
                               borderRadius: 'var(--border-radius)'
                             }}
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/50x50?text=Product';
+                              // Create a simple fallback image using canvas
+                              const canvas = document.createElement('canvas');
+                              canvas.width = 50;
+                              canvas.height = 50;
+                              const ctx = canvas.getContext('2d');
+                              ctx.fillStyle = '#f0f0f0';
+                              ctx.fillRect(0, 0, 50, 50);
+                              ctx.fillStyle = '#666';
+                              ctx.font = '10px Arial';
+                              ctx.textAlign = 'center';
+                              ctx.fillText('Product', 25, 30);
+                              e.target.src = canvas.toDataURL();
                             }}
                           />
                           <div>

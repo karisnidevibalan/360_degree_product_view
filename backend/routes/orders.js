@@ -102,7 +102,7 @@ router.get('/all', protect, async (req, res) => {
 // @access  Private
 // ==================
 router.put('/:id/status', protect, [
-  body('status').isIn(['pending', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status')
+  body('status').isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -114,7 +114,7 @@ router.put('/:id/status', protect, [
     }
 
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
 
     if (!order) {
       return res.status(404).json({
@@ -122,6 +122,8 @@ router.put('/:id/status', protect, [
         message: 'Order not found'
       });
     }
+
+    const oldStatus = order.status;
 
     // If cancelling an order, restore product stock
     if (status === 'cancelled' && order.status !== 'cancelled') {
@@ -142,6 +144,26 @@ router.put('/:id/status', protect, [
     order.status = status;
     order.updatedAt = new Date();
     await order.save();
+
+    // Send email notification for status updates (except for pending status)
+    if (status !== 'pending' && order.user && order.user.email) {
+      try {
+        const { sendOrderStatusUpdateEmail } = require('../utils/emailService');
+        await sendOrderStatusUpdateEmail(
+          order.user.email,
+          order.user.name,
+          {
+            orderId: order._id.toString().slice(-8),
+            total: order.total,
+            shippingAddress: order.shippingAddress
+          },
+          status
+        );
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError);
+        // Don't fail the status update if email fails
+      }
+    }
 
     res.json({
       success: true,
@@ -233,8 +255,15 @@ router.post('/', protect, [
   body('shippingAddress.country').trim().notEmpty().withMessage('Country is required')
 ], async (req, res) => {
   try {
+    // Debug: Log the request body
+    console.log('Order creation request body:', req.body);
+    console.log('Products in request:', req.body.products);
+    console.log('Products type:', typeof req.body.products);
+    console.log('Products is array:', Array.isArray(req.body.products));
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: errors.array()[0].msg
