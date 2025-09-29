@@ -394,8 +394,8 @@ const ProductCard = ({ product, showActions = true }) => {
               padding: '0.75rem',
               borderRadius: '8px',
               border: product.stock ? 'none' : '2px solid #404040',
-              background: product.stock 
-                ? (inCart ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #D4AF37, #FFD700)')
+              background: product.stock
+                ? (inCart ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #4169E1, #0F172A)')
                 : '#6c757d',
               color: product.stock ? (inCart ? '#ffffff' : '#000000') : '#ffffff',
               cursor: product.stock ? 'pointer' : 'not-allowed',
@@ -403,8 +403,8 @@ const ProductCard = ({ product, showActions = true }) => {
               opacity: product.stock ? 1 : 0.6,
               fontWeight: '600',
               fontSize: '0.875rem',
-              boxShadow: product.stock 
-                ? (inCart ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 4px 15px rgba(212, 175, 55, 0.3)')
+              boxShadow: product.stock
+                ? (inCart ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 4px 15px rgba(15, 23, 42, 0.3)')
                 : 'none',
               transform: 'translateY(0)',
             }}
@@ -414,13 +414,13 @@ const ProductCard = ({ product, showActions = true }) => {
                 if (inCart) {
                   e.target.style.background = 'linear-gradient(135deg, #047857, #065f46)';
                 } else {
-                  e.target.style.background = 'linear-gradient(135deg, #B8860B, #D4AF37)';
+                  e.target.style.background = 'linear-gradient(135deg, #4169E1, #0F172A)';
                   e.target.style.color = '#ffffff';
                 }
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = inCart 
+                e.target.style.boxShadow = inCart
                   ? '0 8px 25px rgba(16, 185, 129, 0.4)'
-                  : '0 8px 25px rgba(212, 175, 55, 0.4)';
+                  : '0 8px 25px rgba(15, 23, 42, 0.4)';
               }
             }}
             onMouseLeave={(e) => {
@@ -428,13 +428,13 @@ const ProductCard = ({ product, showActions = true }) => {
                 if (inCart) {
                   e.target.style.background = 'linear-gradient(135deg, #10B981, #059669)';
                 } else {
-                  e.target.style.background = 'linear-gradient(135deg, #D4AF37, #FFD700)';
+                  e.target.style.background = 'linear-gradient(135deg, #4169E1, #0F172A)';
                   e.target.style.color = '#000000';
                 }
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = inCart 
+                e.target.style.boxShadow = inCart
                   ? '0 4px 15px rgba(16, 185, 129, 0.3)'
-                  : '0 4px 15px rgba(212, 175, 55, 0.3)';
+                  : '0 4px 15px rgba(15, 23, 42, 0.3)';
               }
             }}
           >

@@ -1,18 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPackage, FiUsers, FiShoppingCart, FiDollarSign, FiTrendingUp, FiEye, FiDownload, FiBarChart2 } from 'react-icons/fi';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 import { api } from '../utils/api';
 import { formatPrice, formatDate, getStatusColor } from "../utils/helpers";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+);
 
 const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chartType, setChartType] = useState('line');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
     loadAnalytics();
+
+    // Set up real-time polling every 60 seconds
+    const intervalId = setInterval(() => {
+      loadAnalytics();
+    }, 60000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const loadAnalytics = async () => {
@@ -20,6 +53,7 @@ const AdminDashboard = () => {
       const data = await api.getAnalytics();
       const normalized = data && typeof data === 'object' && 'data' in data ? data.data : data;
       setAnalytics(normalized);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('AdminDashboard: Error loading analytics:', error);
     } finally {
@@ -251,8 +285,21 @@ const AdminDashboard = () => {
           <button onClick={loadAnalytics} className="btn btn-primary">
             Refresh Data
           </button>
-          <div style={{ fontSize: '0.875rem', color: 'var(--gray-600)' }}>
-            Last updated: {new Date().toLocaleString()}
+          <div style={{
+            fontSize: '0.875rem',
+            color: 'var(--gray-600)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--success)',
+              animation: 'pulse 2s infinite'
+            }}></div>
+            Live • Last updated: {lastUpdated.toLocaleString()}
           </div>
         </div>
       </div>
@@ -317,7 +364,10 @@ const AdminDashboard = () => {
       {/* Charts Section */}
       <div className="grid grid-2" style={{ gap: '2rem', marginBottom: '2rem' }}>
         {/* Sales Chart */}
-        <div className="card">
+        <div className="card" style={{
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(212, 175, 55, 0.05)',
+          border: '1px solid rgba(212, 175, 55, 0.1)'
+        }}>
           <div className="card-header">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>Sales Analysis</h3>
@@ -342,40 +392,121 @@ const AdminDashboard = () => {
           </div>
           <div className="card-body">
             {salesByMonth.length > 0 ? (
-              <div style={{ height: '300px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartType === 'line' ? (
-                    <LineChart data={salesByMonth} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, (dataMax) => (dataMax || 0) * 1.2]} allowDecimals={false} />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'sales' ? formatPrice(value) : value,
-                        name === 'sales' ? 'Sales' : name === 'orders' ? 'Orders' : name
-                      ]} />
-                      <Legend />
-                      <Line type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} name="Sales" />
-                      {salesByMonth[0].orders !== undefined && (
-                        <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Orders" />
-                      )}
-                    </LineChart>
-                  ) : (
-                    <BarChart data={salesByMonth} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, (dataMax) => (dataMax || 0) * 1.2]} allowDecimals={false} />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'sales' ? formatPrice(value) : value,
-                        name === 'sales' ? 'Sales' : name === 'orders' ? 'Orders' : name
-                      ]} />
-                      <Legend />
-                      <Bar dataKey="sales" fill="#2563eb" name="Sales" />
-                      {salesByMonth[0].orders !== undefined && (
-                        <Bar dataKey="orders" fill="#10b981" name="Orders" />
-                      )}
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
+              <div style={{
+                height: '300px',
+                width: '100%',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(250,250,250,0.9) 100%)',
+                borderRadius: '12px',
+                padding: '1rem',
+                boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}>
+                {chartType === 'line' ? (
+                  <Line
+                    data={{
+                      labels: salesByMonth.map(item => item.month),
+                      datasets: [
+                        {
+                          label: 'Sales Revenue',
+                          data: salesByMonth.map(item => item.sales),
+                          borderColor: '#2563eb',
+                          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                          tension: 0.1,
+                          fill: true,
+                        },
+                        salesByMonth[0] && salesByMonth[0].orders !== undefined ? {
+                          label: 'Total Orders',
+                          data: salesByMonth.map(item => item.orders),
+                          borderColor: '#10b981',
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          tension: 0.1,
+                          fill: true,
+                        } : null,
+                      ].filter(Boolean),
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                label += ': ';
+                              }
+                              if (context.datasetIndex === 0) {
+                                label += formatPrice(context.parsed.y);
+                              } else {
+                                label += context.parsed.y;
+                              }
+                              return label;
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Bar
+                    data={{
+                      labels: salesByMonth.map(item => item.month),
+                      datasets: [
+                        {
+                          label: 'Sales Revenue',
+                          data: salesByMonth.map(item => item.sales),
+                          backgroundColor: '#2563eb',
+                          borderColor: '#2563eb',
+                          borderWidth: 1,
+                        },
+                        salesByMonth[0] && salesByMonth[0].orders !== undefined ? {
+                          label: 'Total Orders',
+                          data: salesByMonth.map(item => item.orders),
+                          backgroundColor: '#10b981',
+                          borderColor: '#10b981',
+                          borderWidth: 1,
+                        } : null,
+                      ].filter(Boolean),
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                label += ': ';
+                              }
+                              if (context.datasetIndex === 0) {
+                                label += formatPrice(context.parsed.y);
+                              } else {
+                                label += context.parsed.y;
+                              }
+                              return label;
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        }
+                      }
+                    }}
+                  />
+                )}
               </div>
             ) : (
               <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -391,33 +522,70 @@ const AdminDashboard = () => {
         </div>
 
         {/* Category Distribution */}
-        <div className="card">
+        <div className="card" style={{
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(212, 175, 55, 0.05)',
+          border: '1px solid rgba(212, 175, 55, 0.1)'
+        }}>
           <div className="card-header">
             <h3>Sales by Category</h3>
           </div>
           <div className="card-body">
             {salesByCategory.length > 0 ? (
-              <div style={{ height: '300px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={salesByCategory}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {salesByCategory.map((entry, index) => {
-                        const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
-                        return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                      })}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div style={{
+                height: '300px',
+                width: '100%',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(250,250,250,0.9) 100%)',
+                borderRadius: '12px',
+                padding: '1rem',
+                boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+              }}>
+                <Pie
+                  data={{
+                    labels: salesByCategory.map(item => `${item.name} (${item.percentage}%)`),
+                    datasets: [
+                      {
+                        data: salesByCategory.map(item => item.value),
+                        backgroundColor: [
+                          '#2563eb',
+                          '#10b981',
+                          '#f59e0b',
+                          '#ef4444',
+                          '#8b5cf6',
+                          '#06b6d4',
+                        ],
+                        borderColor: [
+                          '#1e40af',
+                          '#047857',
+                          '#d97706',
+                          '#dc2626',
+                          '#7c3aed',
+                          '#0891b2',
+                        ],
+                        borderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                          boxWidth: 20,
+                          padding: 15,
+                        }
+                      },
+                    tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            return formatPrice(context.parsed);
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
               </div>
             ) : (
               <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

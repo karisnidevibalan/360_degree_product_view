@@ -5,22 +5,24 @@ const User = require("../models/User");
 // Register user
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone, address } = req.body;
     
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ msg: "User already exists" });
-    
-    
     
     const user = new User({
       name,
       email,
       password, // Pass original password - let the model handle hashing
-      role: role || "user"
+      role: role || "user",
+      phone,
+      address
     });
-    
+
     await user.save();
-    res.status(201).json({ msg: "User registered successfully", user });
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
+    res.status(201).json({ msg: "User registered successfully", user: userWithoutPassword });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

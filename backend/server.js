@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -25,6 +25,7 @@ const userRoutes = require('./routes/users');
 const cartRoutes=require('./routes/cart');
 const analyticsRoutes = require('./routes/analytics'); // ADD THIS LINE
 const chatbotRoutes = require('./routes/chatbot');
+const reviewRoutes = require('./routes/reviews');
 const errorHandler = require('./middlewares/error');
 
 // Routes
@@ -35,7 +36,8 @@ app.use('/api/users', userRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/cart', cartRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/chatbot', chatbotRoutes); 
+app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/reviews', reviewRoutes); 
 // Error Handler (must be last)
 app.use(errorHandler);
 
