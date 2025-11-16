@@ -74,7 +74,7 @@ const Header = () => {
             {/* Wishlist */}
             <Link to="/wishlist" className="btn btn-secondary" style={{
               position: 'relative',
-              background: '#4169E1',
+              background: 'var(--primary)',
               color: '#FFFFFF',
               border: 'none'
             }}>
@@ -102,7 +102,7 @@ const Header = () => {
             {/* Cart */}
             <Link to="/cart" className="btn btn-secondary" style={{
               position: 'relative',
-              background: '#4169E1',
+              background: 'var(--primary)',
               color: '#FFFFFF',
               border: 'none'
             }}>
@@ -134,7 +134,7 @@ const Header = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   style={{
-                    background: '#4169E1',
+                    background: 'var(--primary)',
                     color: '#FFFFFF',
                     border: 'none'
                   }}
