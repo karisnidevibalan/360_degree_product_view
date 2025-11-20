@@ -10,6 +10,8 @@ const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+
+
   // Helper function to get consistent product ID
   const getProductId = (item) => {
     // For database items, use productId field, for local items use _id or id
@@ -127,7 +129,18 @@ const Cart = () => {
                 const itemKey = productId || `item-${index}`;
                 
                 return (
-                  <div key={itemKey} className="cart-item">
+                  <div key={itemKey} className="cart-item" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '8px',
+                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.1)',
+                    marginBottom: '1rem',
+                    transition: 'all 0.3s ease'
+                  }}>
                     <Link to={`/product/${productId}`}>
                       <img
                         src={getImageUrl(item)}
@@ -145,39 +158,103 @@ const Cart = () => {
                       />
                     </Link>
 
-                    <div className="cart-item-info">
+                    <div className="cart-item-info" style={{ flex: 1 }}>
                       <Link to={`/product/${productId}`} style={{ textDecoration: 'none' }}>
-                        <h4 className="cart-item-title">{item.name}</h4>
+                        <h4 className="cart-item-title" style={{
+                          fontWeight: 600,
+                          marginBottom: '0.25rem',
+                          color: '#0F172A'
+                        }}>{item.name}</h4>
                       </Link>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--gray-500)', margin: '0.25rem 0' }}>
+                      <p style={{ fontSize: '0.875rem', color: '#737373', margin: '0.25rem 0' }}>
                         Category: {item.category}
                       </p>
-                      <div className="cart-item-price">
+                      <div className="cart-item-price" style={{
+                        background: 'linear-gradient(135deg, #4169E1, #0F172A)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        fontWeight: 600
+                      }}>
                         {formatPrice(item.price)} each
                       </div>
                     </div>
 
                     {/* Quantity Controls */}
-                    <div className="quantity-controls">
+                    <div className="quantity-controls" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}>
                       <button
                         className="quantity-btn"
                         onClick={() => handleQuantityChange(item, item.quantity - 1)}
                         disabled={item.quantity <= 1}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          border: '2px solid #4169E1',
+                          background: '#FFFFFF',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s',
+                          color: '#4169E1'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#4169E1';
+                          e.target.style.color = '#FFFFFF';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = '#FFFFFF';
+                          e.target.style.color = '#4169E1';
+                        }}
                       >
                         <FiMinus />
                       </button>
-                      
+
                       <input
                         type="number"
                         min="1"
                         value={item.quantity}
                         onChange={(e) => handleQuantityChange(item, parseInt(e.target.value) || 1)}
                         className="quantity-input"
+                        style={{
+                          width: '60px',
+                          textAlign: 'center',
+                          border: '2px solid #4169E1',
+                          borderRadius: '4px',
+                          padding: '0.5rem',
+                          background: '#FFFFFF'
+                        }}
                       />
-                      
+
                       <button
                         className="quantity-btn"
                         onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          border: '2px solid #4169E1',
+                          background: '#FFFFFF',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s',
+                          color: '#4169E1'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#4169E1';
+                          e.target.style.color = '#FFFFFF';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = '#FFFFFF';
+                          e.target.style.color = '#4169E1';
+                        }}
                       >
                         <FiPlus />
                       </button>

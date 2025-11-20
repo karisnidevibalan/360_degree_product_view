@@ -13,6 +13,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     loadProduct();
@@ -20,8 +22,12 @@ const ProductDetail = () => {
 
   const loadProduct = async () => {
     try {
-      const data = await api.getProduct(id);
-      setProduct(data);
+      const [productData, reviewsData] = await Promise.all([
+        api.getProduct(id),
+        api.getProductReviews(id)
+      ]);
+      setProduct(productData);
+      setReviews(reviewsData);
     } catch (error) {
       console.error('Error loading product:', error);
       navigate('/products');
@@ -286,15 +292,77 @@ const ProductDetail = () => {
       {/* Reviews Section */}
       <div className="card" style={{ marginTop: '3rem' }}>
         <div className="card-header">
-          <h3>Customer Reviews ({product.reviews})</h3>
+          <h3>Customer Reviews ({reviews.length})</h3>
         </div>
         <div className="card-body">
-          <div className="text-center" style={{ padding: '2rem 0' }}>
-            <FiStar size={48} color="var(--gray-400)" style={{ marginBottom: '1rem' }} />
-            <p style={{ color: 'var(--gray-500)' }}>
-              Customer reviews would be displayed here. This is a demo application.
-            </p>
-          </div>
+          {reviews.length === 0 ? (
+            <div className="text-center" style={{ padding: '2rem 0' }}>
+              <FiStar size={48} color="var(--gray-400)" style={{ marginBottom: '1rem' }} />
+              <p style={{ color: 'var(--gray-500)' }}>
+                No reviews yet. Be the first to review this product!
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {reviews.map((review) => (
+                <div key={review._id} style={{
+                  padding: '1rem',
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: 'var(--border-radius)',
+                  backgroundColor: 'var(--gray-50)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: '0.75rem'
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.25rem' }}>
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <FiStar
+                            key={i}
+                            size={16}
+                            className={i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}
+                            style={i < review.rating ? { color: '#fbbf24', fill: 'currentColor' } : { color: '#d1d5db' }}
+                          />
+                        ))}
+                      </div>
+                      <div style={{
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: 'var(--gray-900)'
+                      }}>
+                        {review.user?.name || 'Anonymous'}
+                      </div>
+                      {review.isVerifiedPurchase && (
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--success)',
+                          marginTop: '0.25rem'
+                        }}>
+                          ✓ Verified Purchase
+                        </div>
+                      )}
+                    </div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--gray-500)'
+                    }}>
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: 'var(--gray-700)',
+                    lineHeight: '1.5'
+                  }}>
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

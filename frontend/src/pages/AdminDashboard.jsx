@@ -1,18 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPackage, FiUsers, FiShoppingCart, FiDollarSign, FiTrendingUp, FiEye, FiDownload, FiBarChart2 } from 'react-icons/fi';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { FiPackage, FiUsers, FiShoppingCart, FiDollarSign, FiTrendingUp, FiEye, FiDownload, FiBarChart2, FiRefreshCw } from 'react-icons/fi';
+import StatCard from '../components/StatCard';
+import { getTextColorForBackground } from '../utils/colorUtils';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 import { api } from '../utils/api';
 import { formatPrice, formatDate, getStatusColor } from "../utils/helpers";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+);
 
 const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chartType, setChartType] = useState('line');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
     loadAnalytics();
+
+    // Set up real-time polling every 60 seconds
+    const intervalId = setInterval(() => {
+      loadAnalytics();
+    }, 60000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const loadAnalytics = async () => {
@@ -20,6 +55,7 @@ const AdminDashboard = () => {
       const data = await api.getAnalytics();
       const normalized = data && typeof data === 'object' && 'data' in data ? data.data : data;
       setAnalytics(normalized);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('AdminDashboard: Error loading analytics:', error);
     } finally {
@@ -222,102 +258,438 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '60vh',
+        flexDirection: 'column',
+        gap: '1rem',
+      }}>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid #e5e7eb',
+          borderTop: '4px solid #3b82f6',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }}></div>
+        <p style={{ 
+          color: '#4b5563',
+          fontSize: '1rem',
+          fontWeight: '500',
+        }}>Loading dashboard data...</p>
       </div>
     );
   }
 
   if (!analytics) {
     return (
-      <div className="container" style={{ padding: '2rem 0', textAlign: 'center' }}>
-        <p>Unable to load analytics data. Please try again later.</p>
-        <button onClick={loadAnalytics} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-          Retry
-        </button>
+      <div style={{ 
+        padding: '4rem 2rem', 
+        textAlign: 'center',
+        maxWidth: '600px',
+        margin: '0 auto',
+      }}>
+        <div style={{
+              background: '#f9fafb',
+              borderRadius: '12px',
+              padding: '2rem',
+              border: '1px solid #e5e7eb',
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+              background: '#f3f4f6',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem',
+              border: '2px solid #4f46e5',
+            }}>
+              <FiBarChart2 size={28} color="#4f46e5" />
+          </div>
+          <h3 style={{
+            fontSize: '1.25rem',
+            fontWeight: '600',
+            color: '#1f2937',
+            marginBottom: '0.75rem',
+          }}>Unable to load analytics data</h3>
+          <p style={{
+            color: '#6b7280',
+            marginBottom: '1.5rem',
+            lineHeight: '1.5',
+          }}>
+            We encountered an issue while loading your dashboard data. 
+            Please check your connection and try again.
+          </p>
+          <button 
+            onClick={loadAnalytics}
+            style={{
+              background: '#4f46e5',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.625rem 1.5rem',
+              borderRadius: '8px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.target.style.background = '#4338ca';
+              e.target.style.transform = 'translateY(-1px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#4f46e5';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            <FiRefreshCw size={18} className="refresh-icon" />
+            <span>Try Again</span>
+          </button>
+        </div>
       </div>
     );
   }
 
+  // Color palette with improved contrast
+  const cardColors = [
+    'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+    'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+    'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+    'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+    'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+    'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+  ];
+  
+  // Text colors with better contrast
+  const textColors = {
+    primary: '#1f2937',    // Dark gray for primary text
+    secondary: '#4b5563',  // Medium gray for secondary text
+    light: '#6b7280',      // Light gray for subtle text
+    white: '#ffffff',      // White text for dark backgrounds
+    error: '#dc2626'       // Red for error states
+  };
+
+  // Get text color based on background color
+  const getTextColor = (bgColor) => {
+    return getTextColorForBackground(bgColor);
+  };
+
   return (
-    <div className="container" style={{ padding: '2rem 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>Admin Dashboard</h1>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <button onClick={downloadExcelReport} className="btn btn-success">
-            <FiDownload style={{ marginRight: '0.5rem' }} />
-            Download Excel Report
+    <div className="container" style={{ 
+      padding: '2rem 0',
+      backgroundColor: '#e5e7eb',
+      minHeight: '100vh',
+      color: textColors.primary
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '2rem',
+        flexWrap: 'wrap',
+        gap: '1rem',
+      }}>
+        <h1 style={{ 
+          margin: 0,
+          color: '#1f2937',
+          fontWeight: '800',
+          fontSize: '2rem',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+        }}>
+          Admin Dashboard
+        </h1>
+        <div style={{ 
+          display: 'flex', 
+          gap: '1rem', 
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}>
+          <button 
+            onClick={downloadExcelReport} 
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+              color: textColors.white,
+              border: 'none',
+              padding: '0.625rem 1.25rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: '600',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+            }}
+          >
+            <FiDownload size={18} />
+            <span>Download Report</span>
           </button>
-          <button onClick={loadAnalytics} className="btn btn-primary">
-            Refresh Data
+          
+          <button 
+            onClick={loadAnalytics} 
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+              color: textColors.white,
+              border: 'none',
+              padding: '0.625rem 1.25rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: '600',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+            }}
+          >
+            <FiRefreshCw size={18} className="refresh-icon" />
+            <span>Refresh</span>
           </button>
-          <div style={{ fontSize: '0.875rem', color: 'var(--gray-600)' }}>
-            Last updated: {new Date().toLocaleString()}
+          
+          <div style={{
+            fontSize: '0.875rem',
+              background: 'rgba(0, 0, 0, 0.05)',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontWeight: '500',
+              color: '#e5e7eb',
+          }}>
+            <div style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              backgroundColor: '#10b981',
+              boxShadow: '0 0 10px #10b981',
+              animation: 'pulse 2s infinite'
+            }}></div>
+            <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
           </div>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <FiPackage size={32} color="var(--primary)" />
-            <FiTrendingUp size={16} color="var(--success)" />
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem',
+      }}>
+        <StatCard
+          icon={FiPackage}
+          value={analytics.totalProducts || 0}
+          label="Total Products"
+          link="/admin/products"
+          linkText="View Products"
+          bgColor={cardColors[0]}
+          iconColor="#ffffff"
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            marginTop: '0.5rem',
+            opacity: 0.9,
+          }}>
+            <FiTrendingUp size={16} />
+            <span>+12% from last month</span>
           </div>
-          <span className="stat-number">{analytics.totalProducts || 0}</span>
-          <span className="stat-label">Total Products</span>
-          <Link to="/admin/products" className="btn btn-sm btn-primary" style={{ marginTop: '1rem' }}>
-            <FiEye />
-            View Products
-          </Link>
-        </div>
+        </StatCard>
 
-        <div className="stat-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <FiShoppingCart size={32} color="var(--accent)" />
-            <FiTrendingUp size={16} color="var(--success)" />
+        <StatCard
+          icon={FiShoppingCart}
+          value={analytics.totalOrders || 0}
+          label="Total Orders"
+          link="/admin/orders"
+          linkText="View Orders"
+          bgColor={cardColors[1]}
+          iconColor="#ffffff"
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            marginTop: '0.5rem',
+            opacity: 0.9,
+          }}>
+            <FiTrendingUp size={16} />
+            <span>+8% from last month</span>
           </div>
-          <span className="stat-number">{analytics.totalOrders || 0}</span>
-          <span className="stat-label">Total Orders</span>
-          <Link to="/admin/orders" className="btn btn-sm btn-primary" style={{ marginTop: '1rem' }}>
-            <FiEye />
-            View Orders
-          </Link>
-        </div>
+        </StatCard>
 
-        <div className="stat-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <FiUsers size={32} color="var(--success)" />
-            <FiTrendingUp size={16} color="var(--success)" />
+        <StatCard
+          icon={FiUsers}
+          value={analytics.totalUsers || 0}
+          label="Total Users"
+          link="/admin/users"
+          linkText="View Users"
+          bgColor={cardColors[2]}
+          iconColor="#ffffff"
+        >
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            fontSize: '0.75rem',
+            marginTop: '0.5rem',
+            opacity: 0.9,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.7)' }}></span>
+              <span>{analytics.userMetrics?.adminCount || 0} admins</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.5)' }}></span>
+              <span>{analytics.userMetrics?.regularUserCount || 0} users</span>
+            </div>
           </div>
-          <span className="stat-number">{analytics.totalUsers || 0}</span>
-          <span className="stat-label">Total Users</span>
-          <div style={{ fontSize: '0.75rem', color: 'var(--gray-600)', marginTop: '0.5rem' }}>
-            {analytics.userMetrics?.adminCount || 0} admins • {analytics.userMetrics?.regularUserCount || 0} users
-          </div>
-          <Link to="/admin/users" className="btn btn-sm btn-primary" style={{ marginTop: '1rem' }}>
-            <FiEye />
-            View Users
-          </Link>
-        </div>
+        </StatCard>
 
-        <div className="stat-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <FiDollarSign size={32} color="var(--danger)" />
-            <FiTrendingUp size={16} color="var(--success)" />
+        <StatCard
+          icon={FiDollarSign}
+          value={formatPrice(analytics.totalRevenue || 0)}
+          label="Total Revenue"
+          bgColor={cardColors[3]}
+          iconColor="#ffffff"
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginTop: '0.75rem',
+            padding: '0.5rem',
+            background: 'rgba(255, 255, 255, 0.15)',
+            borderRadius: '6px',
+            fontSize: '0.875rem',
+          }}>
+            <FiTrendingUp size={16} />
+            <span>{analytics.revenueGrowth ? `+${analytics.revenueGrowth}%` : '+8%'} this month</span>
           </div>
-          <span className="stat-number">{formatPrice(analytics.totalRevenue || 0)}</span>
-          <span className="stat-label">Total Revenue</span>
-          <div className="btn btn-sm btn-success" style={{ marginTop: '1rem', cursor: 'default' }}>
-            {analytics.revenueGrowth ? `+${analytics.revenueGrowth}%` : '+12%'} this month
-          </div>
-        </div>
+        </StatCard>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-2" style={{ gap: '2rem', marginBottom: '2rem' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem',
+      }}>
         {/* Sales Chart */}
-        <div className="card">
+        <div style={{
+          background: '#ffffff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+          border: '1px solid #e5e7eb',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          color: textColors.primary,
+        }}>
+          <div style={{
+            padding: '1.25rem 1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: textColors.primary,
+            }}>Sales Analysis</h3>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setChartType('line')}
+                style={{
+                  background: chartType === 'line' ? '#4f46e5' : 'transparent',
+                  color: chartType === 'line' ? '#ffffff' : textColors.secondary,
+                  border: '1px solid',
+                  borderColor: chartType === 'line' ? '#4f46e5' : '#e5e7eb',
+                  borderRadius: '6px',
+                  padding: '0.375rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Line
+              </button>
+              <button
+                onClick={() => setChartType('bar')}
+                style={{
+                  background: chartType === 'bar' ? '#4f46e5' : 'transparent',
+                  color: chartType === 'bar' ? '#ffffff' : textColors.secondary,
+                  border: '1px solid',
+                  borderColor: chartType === 'bar' ? '#4f46e5' : '#e5e7eb',
+                  borderRadius: '6px',
+                  padding: '0.375rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Bar
+              </button>
+              <button 
+                onClick={downloadSalesDataCSV}
+                style={{
+                  background: 'transparent',
+                  color: textColors.secondary,
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  padding: '0.375rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#f9fafb';
+                  e.target.style.borderColor = '#d1d5db';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = 'transparent';
+                  e.target.style.borderColor = '#e5e7eb';
+                }}
+              >
+                <FiDownload size={14} />
+                <span>Export</span>
+              </button>
+            </div>
+          </div>
           <div className="card-header">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>Sales Analysis</h3>
@@ -340,93 +712,247 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="card-body">
+          <div style={{ padding: '1.25rem 1.5rem' }}>
             {salesByMonth.length > 0 ? (
-              <div style={{ height: '300px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  {chartType === 'line' ? (
-                    <LineChart data={salesByMonth} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, (dataMax) => (dataMax || 0) * 1.2]} allowDecimals={false} />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'sales' ? formatPrice(value) : value,
-                        name === 'sales' ? 'Sales' : name === 'orders' ? 'Orders' : name
-                      ]} />
-                      <Legend />
-                      <Line type="monotone" dataKey="sales" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} name="Sales" />
-                      {salesByMonth[0].orders !== undefined && (
-                        <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Orders" />
-                      )}
-                    </LineChart>
-                  ) : (
-                    <BarChart data={salesByMonth} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, (dataMax) => (dataMax || 0) * 1.2]} allowDecimals={false} />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'sales' ? formatPrice(value) : value,
-                        name === 'sales' ? 'Sales' : name === 'orders' ? 'Orders' : name
-                      ]} />
-                      <Legend />
-                      <Bar dataKey="sales" fill="#2563eb" name="Sales" />
-                      {salesByMonth[0].orders !== undefined && (
-                        <Bar dataKey="orders" fill="#10b981" name="Orders" />
-                      )}
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
+              <div style={{
+                height: '300px',
+                width: '100%',
+                position: 'relative',
+              }}>
+                {chartType === 'line' ? (
+                  <Line
+                    data={{
+                      labels: salesByMonth.map(item => item.month),
+                      datasets: [
+                        {
+                          label: 'Sales Revenue',
+                          data: salesByMonth.map(item => item.sales),
+                          borderColor: '#2563eb',
+                          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                          tension: 0.1,
+                          fill: true,
+                        },
+                        salesByMonth[0] && salesByMonth[0].orders !== undefined ? {
+                          label: 'Total Orders',
+                          data: salesByMonth.map(item => item.orders),
+                          borderColor: '#10b981',
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          tension: 0.1,
+                          fill: true,
+                        } : null,
+                      ].filter(Boolean),
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                label += ': ';
+                              }
+                              if (context.datasetIndex === 0) {
+                                label += formatPrice(context.parsed.y);
+                              } else {
+                                label += context.parsed.y;
+                              }
+                              return label;
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Bar
+                    data={{
+                      labels: salesByMonth.map(item => item.month),
+                      datasets: [
+                        {
+                          label: 'Sales Revenue',
+                          data: salesByMonth.map(item => item.sales),
+                          backgroundColor: '#2563eb',
+                          borderColor: '#2563eb',
+                          borderWidth: 1,
+                        },
+                        salesByMonth[0] && salesByMonth[0].orders !== undefined ? {
+                          label: 'Total Orders',
+                          data: salesByMonth.map(item => item.orders),
+                          backgroundColor: '#10b981',
+                          borderColor: '#10b981',
+                          borderWidth: 1,
+                        } : null,
+                      ].filter(Boolean),
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                label += ': ';
+                              }
+                              if (context.datasetIndex === 0) {
+                                label += formatPrice(context.parsed.y);
+                              } else {
+                                label += context.parsed.y;
+                              }
+                              return label;
+                            }
+                          }
+                        }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                        }
+                      }
+                    }}
+                  />
+                )}
               </div>
             ) : (
-              <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="text-center">
-                  <FiTrendingUp size={48} color="var(--gray-400)" style={{ marginBottom: '1rem' }} />
-                  <p style={{ color: 'var(--gray-500)' }}>
-                    No sales data available for charting
-                  </p>
-                </div>
+              <div style={{ 
+                height: '300px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: 'rgba(243, 244, 246, 0.7)',
+                borderRadius: '8px',
+                border: '1px dashed #e5e7eb',
+              }}>
+                <FiTrendingUp size={48} color={textColors.light} style={{ marginBottom: '1rem', opacity: 0.7 }} />
+                <p style={{ 
+                  color: textColors.secondary,
+                  margin: 0,
+                  fontSize: '0.9375rem',
+                  textAlign: 'center',
+                  maxWidth: '300px',
+                  lineHeight: '1.5',
+                }}>
+                  No sales data available for charting. Data will appear here once available.
+                </p>
               </div>
             )}
           </div>
         </div>
 
         {/* Category Distribution */}
-        <div className="card">
-          <div className="card-header">
-            <h3>Sales by Category</h3>
+        <div style={{
+          background: '#ffffff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          borderRadius: '12px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+          border: '1px solid #e5e7eb',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          color: textColors.primary,
+        }}>
+          <div style={{
+            padding: '1.25rem 1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: textColors.primary,
+            }}>Sales by Category</h3>
           </div>
-          <div className="card-body">
+          <div style={{ padding: '1.25rem 1.5rem' }}>
             {salesByCategory.length > 0 ? (
-              <div style={{ height: '300px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={salesByCategory}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {salesByCategory.map((entry, index) => {
-                        const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
-                        return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                      })}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div style={{
+                height: '300px',
+                width: '100%',
+                position: 'relative',
+              }}>
+                <Pie
+                  data={{
+                    labels: salesByCategory.map(item => `${item.name} (${item.percentage}%)`),
+                    datasets: [
+                      {
+                        data: salesByCategory.map(item => item.value),
+                        backgroundColor: [
+                          '#2563eb',
+                          '#10b981',
+                          '#f59e0b',
+                          '#ef4444',
+                          '#8b5cf6',
+                          '#06b6d4',
+                        ],
+                        borderColor: [
+                          '#1e40af',
+                          '#047857',
+                          '#d97706',
+                          '#dc2626',
+                          '#7c3aed',
+                          '#0891b2',
+                        ],
+                        borderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                          boxWidth: 20,
+                          padding: 15,
+                        }
+                      },
+                    tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            return formatPrice(context.parsed);
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
               </div>
             ) : (
-              <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="text-center">
-                  <FiBarChart2 size={48} color="var(--gray-400)" style={{ marginBottom: '1rem' }} />
-                  <p style={{ color: 'var(--gray-500)' }}>
-                    No category data available
-                  </p>
-                </div>
+              <div style={{ 
+                height: '300px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: 'rgba(243, 244, 246, 0.7)',
+                borderRadius: '8px',
+                border: '1px dashed #e5e7eb',
+              }}>
+                <FiBarChart2 size={48} color={textColors.light} style={{ marginBottom: '1rem', opacity: 0.7 }} />
+                <p style={{ 
+                  color: textColors.secondary,
+                  margin: 0,
+                  fontSize: '0.9375rem',
+                  textAlign: 'center',
+                  maxWidth: '300px',
+                  lineHeight: '1.5',
+                }}>
+                  No category data available. Data will appear here once available.
+                </p>
               </div>
             )}
           </div>

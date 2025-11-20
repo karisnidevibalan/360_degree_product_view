@@ -72,7 +72,12 @@ const Header = () => {
           {/* Actions */}
           <div className="navbar-actions">
             {/* Wishlist */}
-            <Link to="/wishlist" className="btn btn-secondary" style={{ position: 'relative' }}>
+            <Link to="/wishlist" className="btn btn-secondary" style={{
+              position: 'relative',
+              background: 'var(--primary)',
+              color: '#FFFFFF',
+              border: 'none'
+            }}>
               <FiHeart />
               {wishlist.length > 0 && (
                 <span 
@@ -95,7 +100,12 @@ const Header = () => {
             </Link>
 
             {/* Cart */}
-            <Link to="/cart" className="btn btn-secondary" style={{ position: 'relative' }}>
+            <Link to="/cart" className="btn btn-secondary" style={{
+              position: 'relative',
+              background: 'var(--primary)',
+              color: '#FFFFFF',
+              border: 'none'
+            }}>
               <FiShoppingCart />
               {getCartItemsCount() > 0 && (
                 <span 
@@ -123,6 +133,11 @@ const Header = () => {
                 <button
                   className="btn btn-secondary"
                   onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={{
+                    background: 'var(--primary)',
+                    color: '#FFFFFF',
+                    border: 'none'
+                  }}
                 >
                   <FiUser />
                   <span>{user.name}</span>

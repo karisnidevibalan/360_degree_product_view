@@ -138,6 +138,36 @@ export const AuthProvider = ({ children, initialRole }) => {
     clearAuthData();
   };
 
+  const updateProfile = async (userData) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.success) {
+        const updatedUser = responseData.data.user;
+
+        setUser(updatedUser);
+
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+
+        return { success: true, user: updatedUser };
+      } else {
+        return { success: false, message: responseData.message };
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { success: false, message: 'Profile update failed. Please try again.' };
+    }
+  };
+
   // Function to validate current session
   const validateSession = () => {
     if (token && isTokenExpired(token)) {
@@ -156,8 +186,17 @@ export const AuthProvider = ({ children, initialRole }) => {
     login,
     register,
     logout,
+    updateProfile,
     setUserRole,
     validateSession,
+    setUser: (userData) => {
+      setUser(userData);
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        localStorage.removeItem('user');
+      }
+    },
   };
 
   return (

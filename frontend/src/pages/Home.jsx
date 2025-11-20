@@ -51,7 +51,7 @@ const Home = () => {
   ];
 
   return (
-    <div>
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Hero Carousel */}
       <Carousel
         slides={[
@@ -86,59 +86,59 @@ const Home = () => {
       />
 
       {/* Features */}
-      <section style={{ padding: '4rem 0', backgroundColor: 'var(--gray-50)' }}>
+      <section style={{ padding: '4rem 0', backgroundColor: 'var(--gray-50)' }} className="py-16 bg-slate-50/60">
         <div className="container">
-          <div className="grid grid-4">
-            <div className="text-center">
+          <div className="grid grid-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center card p-6 shadow-sm hover:shadow-lg transition-shadow rounded-xl">
               <FiTruck size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-              <h3>Free Shipping</h3>
-              <p>Free shipping on orders over $50</p>
+              <h3 className="text-lg font-semibold">Free Shipping</h3>
+              <p className="text-slate-600">Free shipping on orders over $50</p>
             </div>
-            <div className="text-center">
+            <div className="text-center card p-6 shadow-sm hover:shadow-lg transition-shadow rounded-xl">
               <FiShield size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-              <h3>Secure Payment</h3>
-              <p>100% secure payment processing</p>
+              <h3 className="text-lg font-semibold">Secure Payment</h3>
+              <p className="text-slate-600">100% secure payment processing</p>
             </div>
-            <div className="text-center">
+            <div className="text-center card p-6 shadow-sm hover:shadow-lg transition-shadow rounded-xl">
               <FiHeadphones size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-              <h3>24/7 Support</h3>
-              <p>Round-the-clock customer support</p>
+              <h3 className="text-lg font-semibold">24/7 Support</h3>
+              <p className="text-slate-600">Round-the-clock customer support</p>
             </div>
-            <div className="text-center">
+            <div className="text-center card p-6 shadow-sm hover:shadow-lg transition-shadow rounded-xl">
               <FiShoppingBag size={48} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-              <h3>Easy Returns</h3>
-              <p>30-day hassle-free returns</p>
+              <h3 className="text-lg font-semibold">Easy Returns</h3>
+              <p className="text-slate-600">30-day hassle-free returns</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Categories */}
-      <section style={{ padding: '4rem 0' }}>
+      <section style={{ padding: '4rem 0' }} className="py-16">
         <div className="container">
           <div className="text-center" style={{ marginBottom: '3rem' }}>
-            <h2>Shop by Category</h2>
-            <p>Find exactly what you're looking for</p>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Shop by Category</h2>
+            <p className="text-slate-600 mt-2">Find exactly what you're looking for</p>
           </div>
 
-          <div className="grid grid-4">
+          <div className="grid grid-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
               <Link
                 key={category.name}
                 to={category.link}
-                className="card"
+                className="card group overflow-hidden rounded-xl hover:border-primary transition-colors"
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <img
                   src={category.image}
                   alt={category.name}
-                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     e.target.src = 'https://via.placeholder.com/300x200?text=Category';
                   }}
                 />
-                <div className="card-body text-center">
-                  <h3>{category.name}</h3>
+                <div className="card-body text-center p-4">
+                  <h3 className="text-base font-semibold">{category.name}</h3>
                 </div>
               </Link>
             ))}
@@ -147,19 +147,19 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section style={{ padding: '4rem 0', backgroundColor: 'var(--gray-50)' }}>
+      <section style={{ padding: '4rem 0', backgroundColor: 'var(--gray-50)' }} className="py-16 bg-slate-50">
         <div className="container">
           <div className="text-center" style={{ marginBottom: '3rem' }}>
-            <h2>Featured Products</h2>
-            <p>Our top-rated products loved by customers</p>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Featured Products</h2>
+            <p className="text-slate-600 mt-2">Our top-rated products loved by customers</p>
           </div>
 
           {loading ? (
-            <div className="loading">
+            <div className="loading flex justify-center">
               <div className="spinner"></div>
             </div>
           ) : (
-            <div className="grid grid-4">
+            <div className="grid grid-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -167,18 +167,18 @@ const Home = () => {
           )}
 
           <div className="text-center" style={{ marginTop: '3rem' }}>
-            <Link to="/products" className="btn btn-primary btn-lg">
-              View All Products
+            <Link to="/products" className="btn btn-primary btn-lg inline-flex items-center">
+              Explore All Products
             </Link>
           </div>
         </div>
       </section>
 
       {/* Newsletter */}
-      <section style={{ padding: '4rem 0', backgroundColor: 'var(--primary)', color: 'white' }}>
+      <section style={{ padding: '4rem 0', backgroundColor: 'var(--primary)', color: 'white' }} className="py-16 bg-[var(--primary)] text-white">
         <div className="container text-center">
-          <h2>Stay Updated</h2>
-          <p style={{ marginBottom: '2rem', opacity: 0.9 }}>
+          <h2 className="text-2xl md:text-3xl font-bold">Stay Updated</h2>
+          <p style={{ marginBottom: '2rem', opacity: 0.9 }} className="mt-2 opacity-90">
             Subscribe to our newsletter for the latest deals and product updates
           </p>
           <form
@@ -188,7 +188,7 @@ const Home = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className="form-input"
+              className="form-input rounded-md"
               style={{ flex: 1 }}
             />
             <button type="submit" className="btn btn-secondary">

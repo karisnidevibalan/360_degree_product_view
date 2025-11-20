@@ -99,23 +99,23 @@ const ProductCard = ({ product, showActions = true }) => {
     <div 
       className="product-card"
       style={{
-        background: '#FFFFFF',
-        border: '1px solid #E5E5E5',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px 0 rgb(0 0 0 / 0.15)',
+        background: 'var(--white)',
+        border: '1px solid var(--gray-200)',
+        borderRadius: 'var(--border-radius)',
+        boxShadow: 'var(--shadow)',
         transition: 'all 0.3s ease',
         overflow: 'hidden',
         position: 'relative'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-6px)';
-        e.currentTarget.style.boxShadow = '0 10px 25px -5px rgb(0 0 0 / 0.25)';
-        e.currentTarget.style.borderColor = '#D4AF37';
+        e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+        e.currentTarget.style.borderColor = 'var(--primary)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 2px 8px 0 rgb(0 0 0 / 0.15)';
-        e.currentTarget.style.borderColor = '#E5E5E5';
+        e.currentTarget.style.boxShadow = 'var(--shadow)';
+        e.currentTarget.style.borderColor = 'var(--gray-200)';
       }}
     >
       {/* Product Image Container */}
@@ -329,10 +329,7 @@ const ProductCard = ({ product, showActions = true }) => {
           style={{
             fontSize: '1.25rem',
             fontWeight: '700',
-            background: 'linear-gradient(135deg, #D4AF37, #FFD700)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: 'var(--primary)',
             marginBottom: '0.75rem'
           }}
         >
@@ -394,53 +391,51 @@ const ProductCard = ({ product, showActions = true }) => {
               padding: '0.75rem',
               borderRadius: '8px',
               border: product.stock ? 'none' : '2px solid #404040',
-              background: product.stock 
-                ? (inCart ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #D4AF37, #FFD700)')
-                : '#6c757d',
-              color: product.stock ? (inCart ? '#ffffff' : '#000000') : '#ffffff',
+              background: product.stock
+                ? (inCart ? 'var(--success)' : 'linear-gradient(135deg, var(--primary), var(--primary-dark))')
+                : 'var(--gray-400)',
+              color: 'var(--white)',
               cursor: product.stock ? 'pointer' : 'not-allowed',
               transition: 'all 0.3s ease',
               opacity: product.stock ? 1 : 0.6,
               fontWeight: '600',
               fontSize: '0.875rem',
-              boxShadow: product.stock 
-                ? (inCart ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 4px 15px rgba(212, 175, 55, 0.3)')
+              boxShadow: product.stock
+                ? (inCart ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 4px 15px rgba(15, 23, 42, 0.3)')
                 : 'none',
               transform: 'translateY(0)',
             }}
-            title={inCart ? `Already in cart (${cartQuantity})` : 'Add to cart'}
+            title={inCart ? `In bag (${cartQuantity})` : 'Add to bag'}
             onMouseEnter={(e) => {
               if (product.stock) {
                 if (inCart) {
-                  e.target.style.background = 'linear-gradient(135deg, #047857, #065f46)';
+                  e.target.style.background = '#047857';
                 } else {
-                  e.target.style.background = 'linear-gradient(135deg, #B8860B, #D4AF37)';
-                  e.target.style.color = '#ffffff';
+                  e.target.style.background = 'var(--primary-dark)';
                 }
                 e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = inCart 
-                  ? '0 8px 25px rgba(16, 185, 129, 0.4)'
-                  : '0 8px 25px rgba(212, 175, 55, 0.4)';
+                e.target.style.boxShadow = inCart
+                  ? '0 8px 25px rgba(5, 150, 105, 0.4)'
+                  : '0 8px 25px rgba(37, 99, 235, 0.4)';
               }
             }}
             onMouseLeave={(e) => {
               if (product.stock) {
                 if (inCart) {
-                  e.target.style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                  e.target.style.background = 'var(--success)';
                 } else {
-                  e.target.style.background = 'linear-gradient(135deg, #D4AF37, #FFD700)';
-                  e.target.style.color = '#000000';
+                  e.target.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
                 }
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = inCart 
-                  ? '0 4px 15px rgba(16, 185, 129, 0.3)'
-                  : '0 4px 15px rgba(212, 175, 55, 0.3)';
+                e.target.style.boxShadow = inCart
+                  ? '0 4px 15px rgba(5, 150, 105, 0.3)'
+                  : 'var(--shadow-blue)';
               }
             }}
           >
             <FiShoppingCart size={18} />
             {product.stock 
-              ? (inCart ? `In Cart (${cartQuantity})` : 'Add to Cart')
+              ? (inCart ? `In Bag (${cartQuantity})` : 'Add to Bag')
               : 'Out of Stock'
             }
           </button>

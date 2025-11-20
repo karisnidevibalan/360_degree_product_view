@@ -97,7 +97,7 @@ const AdminLayout = ({ children }) => {
             <li><Link to="/admin/users">Users</Link></li>
           </ul>
         </nav>
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ display: 'flex', justifyContent: 'center' }}>
           <button onClick={handleLogout} className="btn btn-secondary">
             Logout
           </button>
@@ -267,6 +267,7 @@ function AppContent({ selectedRole }) {
       {/* Test Chatbot - Always visible for debugging */}
       <SimpleChatbot />
       
+<<<<<<< HEAD
       {/* Debug: Show if user is logged in */}
       {process.env.NODE_ENV === 'development' && (
         <div style={{
@@ -284,6 +285,8 @@ function AppContent({ selectedRole }) {
         </div>
       )}
       
+=======
+>>>>>>> ecommerce/main
       {/* Notification Toast Component */}
       <NotificationToast />
     </>

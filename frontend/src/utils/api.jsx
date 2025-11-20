@@ -470,13 +470,13 @@ export const api = {
   getUserOrders: async () => {
     const response = await makeRequest('/orders');
     // The user orders endpoint wraps data, so extract the orders array
-    return response.orders || response;
+    return response.data?.orders || response.orders || response;
   },
 
   // Get single order
   getOrder: async (orderId) => {
     const response = await makeRequest(`/orders/${orderId}`);
-    return response.order || response;
+    return response.data?.order || response.order || response;
   },
 
   // Create new order
@@ -514,7 +514,7 @@ export const api = {
   },
 
   getProfile: async () => {
-    return makeRequest('/auth/profile');
+    return makeRequest('/auth/me');
   },
 
   // Update user profile
@@ -559,6 +559,85 @@ export const api = {
   clearCart: cartAPI.clearCart,
   syncCart: cartAPI.syncCart,
   getCartCount: cartAPI.getCartCount,
+
+  // Chatbot methods
+  post: async (endpoint, data) => {
+    try {
+      const response = await API.post(endpoint, data);
+      return response;
+    } catch (err) {
+      console.error("API error:", err);
+      throw err;
+    }
+  },
+
+  get: async (endpoint) => {
+    try {
+      const response = await API.get(endpoint);
+      return response;
+    } catch (err) {
+      console.error("API error:", err);
+      throw err;
+    }
+  },
+
+  // Reviews API methods
+  createReview: async (reviewData) => {
+    try {
+      const response = await API.post('/reviews', reviewData);
+      return response.data;
+    } catch (err) {
+      console.error("API error creating review:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to create review');
+    }
+  },
+
+  updateReview: async (reviewId, reviewData) => {
+    try {
+      const response = await API.put(`/reviews/${reviewId}`, reviewData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        throw new Error('The review you are trying to edit does not exist or has been deleted.');
+      }
+      console.error("API error updating review:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update review');
+    }
+  },
+
+  getProductReviews: async (productId) => {
+    try {
+      const response = await API.get(`/reviews/product/${productId}`);
+      return response.data.data || [];
+    } catch (err) {
+      console.error("API error fetching product reviews:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch reviews');
+    }
+  },
+
+  getUserReviews: async () => {
+    try {
+      const response = await API.get('/reviews/user');
+      return response.data.data || [];
+    } catch (err) {
+      console.error("API error fetching user reviews:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch user reviews');
+    }
+  },
+
+  getReviewableProducts: async () => {
+    try {
+      const response = await API.get('/reviews/user/reviewable-products');
+      return response.data.data || [];
+    } catch (err) {
+      console.error("API error fetching reviewable products:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch reviewable products');
+    }
+  },
 };
 
 // Export both the main api and cartAPI separately
