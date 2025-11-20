@@ -2,29 +2,42 @@ const nodemailer = require('nodemailer');
 
 // Create transporter
 const createTransporter = () => {
-  // Check if SMTP configuration is provided
-  if (process.env.SMTP_HOST) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      },
-      tls: {
-        rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false'
+  try {
+    // Check if SMTP configuration is provided
+    if (process.env.SMTP_HOST) {
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        throw new Error('SMTP_USER and SMTP_PASS are required when using SMTP_HOST');
       }
-    });
-  } else {
-    // Fallback to service-based configuration (Gmail, etc.)
-    return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+      
+      console.log('Creating SMTP transporter with host:', process.env.SMTP_HOST);
+      return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT || 587,
+        secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        },
+        tls: {
+          rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false'
+        }
+      });
+    } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      // Fallback to service-based configuration (Gmail, etc.)
+      console.log('Creating service-based email transporter');
+      return nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+    } else {
+      throw new Error('No valid email configuration found. Please set up SMTP or service-based email settings.');
+    }
+  } catch (error) {
+    console.error('Error creating email transporter:', error);
+    throw error;
   }
 };
 

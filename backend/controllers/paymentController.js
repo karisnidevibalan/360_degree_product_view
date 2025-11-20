@@ -77,7 +77,17 @@ const verifyPayment = async (req, res) => {
     await order.save();
 
     // Send order confirmation email
-    await sendOrderConfirmationEmail(req.user, order);
+    await sendOrderConfirmationEmail(
+      req.user.email,
+      req.user.name,
+      {
+        orderId: order._id.toString().slice(-8),
+        orderDate: order.createdAt,
+        total: order.total,
+        items: order.products,
+        shippingAddress: order.shippingAddress
+      }
+    );
 
     res.status(200).json({
       success: true,

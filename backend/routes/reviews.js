@@ -145,6 +145,62 @@ router.get('/user', protect, async (req, res) => {
   }
 });
 
+// PUT /api/reviews/:id - Update a review
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+
+    // Validate required fields
+    if (!rating || !comment) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rating and comment are required'
+      });
+    }
+
+    // Find the review
+    const review = await Review.findOne({
+      _id: req.params.id,
+      user: req.user._id // Ensure the review belongs to the current user
+    });
+
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found or you do not have permission to edit it'
+      });
+    }
+
+    // Update the review
+    review.rating = rating;
+    review.comment = comment;
+    review.isEdited = true;
+    
+    await review.save();
+
+    // Update product's average rating
+    const product = await Product.findById(review.product);
+    const allReviews = await Review.find({ product: review.product });
+    const totalRating = allReviews.reduce((sum, r) => sum + r.rating, 0);
+    product.rating = totalRating / allReviews.length;
+    await product.save();
+
+    res.json({
+      success: true,
+      message: 'Review updated successfully',
+      data: review
+    });
+
+  } catch (error) {
+    console.error('Error updating review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating review',
+      error: error.message
+    });
+  }
+});
+
 // GET /api/reviews/user/reviewable-products - Get products user can review
 router.get('/user/reviewable-products', protect, async (req, res) => {
   try {
@@ -192,4 +248,5 @@ router.get('/user/reviewable-products', protect, async (req, res) => {
   }
 });
 
+// Export the router
 module.exports = router;

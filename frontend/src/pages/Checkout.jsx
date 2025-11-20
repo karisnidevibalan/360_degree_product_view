@@ -5,6 +5,7 @@ import { useCart } from '../context/cartContext';
 import { useAuth } from '../context/authContext';
 import { api } from '../utils/api';
 import { formatPrice } from '../utils/helpers';
+import Image from '../components/Image';
 
 const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -560,22 +561,33 @@ const Checkout = () => {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '1rem',
                         marginBottom: '1rem',
                         paddingBottom: '1rem',
-                        borderBottom: '1px solid #e5e7eb'
+                        borderBottom: '1px solid #e5e7eb',
                       }}
                     >
-                      <img
-                        src={item.image}
-                        alt={item.name}
+                      <div
                         style={{
-                          width: '50px',
-                          height: '50px',
-                          objectFit: 'cover',
-                          borderRadius: '8px'
+                          width: '60px',
+                          height: '60px',
+                          marginRight: '1rem',
+                          position: 'relative',
+                          borderRadius: '0.5rem',
+                          overflow: 'hidden',
+                          backgroundColor: '#f3f4f6',
                         }}
-                      />
+                      >
+                        <Image
+                          productId={item.id || item._id}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            padding: '0.25rem',
+                          }}
+                        />
+                      </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
                           {item.name}

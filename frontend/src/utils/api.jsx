@@ -592,6 +592,23 @@ export const api = {
     }
   },
 
+  updateReview: async (reviewId, reviewData) => {
+    try {
+      const response = await API.put(`/reviews/${reviewId}`, reviewData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        throw new Error('The review you are trying to edit does not exist or has been deleted.');
+      }
+      console.error("API error updating review:", err);
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update review');
+    }
+  },
+
   getProductReviews: async (productId) => {
     try {
       const response = await API.get(`/reviews/product/${productId}`);
